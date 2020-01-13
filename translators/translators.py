@@ -3,7 +3,7 @@ import itertools
 
 
 class Translators(commands.Cog):
-	"""My custom cog"""
+	"""Keeps track of users who can provide translation help for Leaguepedia"""
 	
 	def __init__(self, bot):
 		self.bot = bot
@@ -84,7 +84,7 @@ class Translators(commands.Cog):
 	async def languages(self, ctx):
 		"""Lists all languages
 		"""
-		languages = self.config.languages()
+		languages = await self.config.languages()
 		languages_by_group = {}
 		language_groups = []
 		for k, v in languages.items():
@@ -95,7 +95,7 @@ class Translators(commands.Cog):
 		language_groups.sort()
 		printed_language_groups = ['{}: {}'.format(
 			lang,
-			' '.join(sorted(lang))
+			', '.join(sorted(languages_by_group[lang]))
 		) for lang in language_groups]
 		output_string = "\n".join(printed_language_groups)
 		await ctx.send(output_string)
