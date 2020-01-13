@@ -87,7 +87,7 @@ class Translators(commands.Cog):
 		languages = self.config.languages()
 		languages_by_group = {}
 		language_groups = []
-		for k, v in languages:
+		for k, v in languages.items():
 			if v not in languages_by_group.keys():
 				languages_by_group[v] = []
 				language_groups.append(v)
