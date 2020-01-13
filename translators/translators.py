@@ -1,5 +1,4 @@
 from redbot.core import commands, Config, checks
-import itertools
 
 
 class Translators(commands.Cog):
