@@ -18,6 +18,11 @@ class Redirects(commands.Cog):
 	@redirects.command(pass_context=True)
 	async def double(self, ctx, wiki):
 		site = await utils.login_if_possible(ctx, self.bot, wiki)
+		print("!!!!!!!!!!!!!!")
+		print("!!!!!!!!!!!!!!")
+		print("!!!!!!!!!!!!!!")
+		print("!!!!!!!!!!!!!!")
+		print("!!!!!!!!!!!!!!")
 		if site is None:
 			return
 		result = site.api(action="query", list="querypage", qppage="DoubleRedirects")
