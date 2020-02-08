@@ -17,7 +17,7 @@ class Redirects(commands.Cog):
 	
 	@redirects.command(pass_context=True)
 	async def double(self, ctx, wiki):
-		site: EsportsSite = utils.login_if_possible(ctx, self.bot, wiki)
+		site = utils.login_if_possible(ctx, self.bot, wiki)
 		if site is None:
 			return
 		result = site.api(action="query", list="querypage", qppage="DoubleRedirects")
