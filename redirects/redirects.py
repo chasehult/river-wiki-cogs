@@ -18,12 +18,12 @@ class Redirects(commands.Cog):
 	@redirects.command(pass_context=True)
 	async def double(self, ctx, wiki):
 		await ctx.send('at least code is updating?')
-		site = await utils.login_if_possible(ctx, self.bot, wiki)
-		if site is None:
-			return
-		result = site.api(action="query", list="querypage", qppage="DoubleRedirects")
-		for item in result['query']['querypage']['results']:
-			source_page = site.pages[item['title']]
-			target_title = item['databaseResult']['c_title']
-			source_page.save('#redirect[[%s]]' % target_title)
-		return await ctx.send("Okay, should be done!")
+		# site = await utils.login_if_possible(ctx, self.bot, wiki)
+		# if site is None:
+		# 	return
+		# result = site.api(action="query", list="querypage", qppage="DoubleRedirects")
+		# for item in result['query']['querypage']['results']:
+		# 	source_page = site.pages[item['title']]
+		# 	target_title = item['databaseResult']['c_title']
+		# 	source_page.save('#redirect[[%s]]' % target_title)
+		# return await ctx.send("Okay, should be done!")
