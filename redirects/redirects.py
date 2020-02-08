@@ -24,5 +24,12 @@ class Redirects(commands.Cog):
 		for item in result['query']['querypage']['results']:
 			source_page = site.pages[item['title']]
 			target_title = item['databaseResult']['c_title']
-			source_page.save('#redirect[[%s]]' % target_title)
+			target_namespace_number = int(item['databaseResult']['c_namespace'])
+			target_namespace = site.namespaces[int(target_namespace_number)]
+			target_page_name = '{}{}'.format(
+				target_namespace + ':' if target_namespace != '' else '',
+				target_title
+			)
+			source_page.save('#redirect[[%s]]' % target_page_name, summary=self.summary)
+		
 		return await ctx.send("Okay, should be done!")
