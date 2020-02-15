@@ -5,7 +5,7 @@ import mwparserfromhell, re
 
 
 class Redirects(commands.Cog):
-	"""Discovers & updates scoreboards on Leaguepedia that are missing vods"""
+	"""Fixes double redirects based on the wiki's Special:DoubleRedirects report"""
 	
 	def __init__(self, bot):
 		self.bot = bot
