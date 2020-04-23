@@ -46,8 +46,7 @@ class VodsToSbRunner(object):
 		if current_page['page'] is not None:
 			self.save_page(current_page)
 	
-	@staticmethod
-	def add_vod_to_page(item, wikitext):
+	def add_vod_to_page(self, item, wikitext):
 		# Modify wikitext in place
 		n_match_target = int(item['N_MatchInPage'])
 		n_game_target = int(item['N_GameInMatch'])
@@ -55,9 +54,12 @@ class VodsToSbRunner(object):
 		n_game_in_match = 0
 		for template in wikitext.filter_templates(recursive=False):
 			name = template.name.strip()
-			if 'Header' in name or name == 'ScoreboardPlaceholder':
+			if 'Header' in name or self.is_match_placeholder(template):
 				n_match += 1
 				n_game_in_match = 0
+				continue
+			if self.is_game_placeholder(template):
+				n_game_in_match += 1
 				continue
 			if not name.startswith('Scoreboard/Season') and not name.startswith('MatchRecapS8'):
 				continue
@@ -66,6 +68,22 @@ class VodsToSbRunner(object):
 			if n_game_in_match != n_game_target or n_match != n_match_target:
 				continue
 			template.add('vodlink', item['Vod'])
+	
+	@staticmethod
+	def is_match_placeholder(template):
+		if template.name != 'Scoreboard/Placeholder':
+			return False
+		if not template.has(1):
+			return False
+		return template.get(1).value.strip() == 'Match'
+	
+	@staticmethod
+	def is_game_placeholder(template):
+		if template.name != 'Scoreboard/Placeholder':
+			return False
+		if not template.has(1):
+			return False
+		return template.get(1).value.strip() == 'Game'
 	
 	def save_page(self, page):
 		new_text = str(page['wikitext'])
