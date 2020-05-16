@@ -19,7 +19,7 @@ class VodsToSbRunner(object):
 			'SG.N_GameInMatch=N_GameInMatch'
 		]
 		result = self.site.cargo_client.query(
-			tables="MatchScheduleGame=MSG,ScoreboardGame=SG",
+			tables="MatchScheduleGame=MSG,ScoreboardGames=SG",
 			join_on="MSG.ScoreboardID_Wiki=SG.ScoreboardID_Wiki",
 			where="SG.VOD IS NULL AND SG._pageName IS NOT NULL AND ({})".format(where_condition),
 			fields=', '.join(fields),
