@@ -20,6 +20,6 @@ class MovePage(commands.Cog):
 		for page in site.client.allpages(prefix=p1 + '/'):
 			dest = page.name.replace(p1 + '/', p2)
 			await ctx.send("Moving page {} to {}".format(page.name, dest))
-			page.move(dest, summary = self.summary)
+			page.move(dest)
 		
 		return await ctx.send("Okay, should be done!")
