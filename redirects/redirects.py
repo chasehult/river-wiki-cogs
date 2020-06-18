@@ -1,5 +1,4 @@
 from redbot.core import commands
-from esportswiki_editing import login, EsportsSite
 import rivercogutils as utils
 import mwparserfromhell, re
 
@@ -20,7 +19,7 @@ class Redirects(commands.Cog):
 		site = await utils.login_if_possible(ctx, self.bot, wiki)
 		if site is None:
 			return
-		result = site.api(action="query", list="querypage", qppage="DoubleRedirects")
+		result = site.client.api(action="query", list="querypage", qppage="DoubleRedirects")
 		for item in result['query']['querypage']['results']:
 			source_page = site.pages[item['title']]
 			target_title = item['databaseResult']['c_title']

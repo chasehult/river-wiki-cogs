@@ -1,6 +1,5 @@
 from redbot.core import commands
-from river_mwclient.esports_client import EsportsClient
-from river_mwclient.auth_credentials import AuthCredentials
+import rivercogutils as utils
 from vodstosb.vodstosb_main import VodsToSbRunner
 
 class VodsToSb(commands.Cog):
@@ -13,13 +12,8 @@ class VodsToSb(commands.Cog):
 	
 	@commands.command(pass_context=True)
 	async def vodstosb(self, ctx):
-		gamepedia_keys = await self.bot.get_shared_api_tokens("gamepedia")
-		if gamepedia_keys.get("account") is None:
-			return await ctx.send("Sorry, you haven't set a Gamepedia bot account yet.")
-		username = "{}@{}".format(gamepedia_keys.get("account"), gamepedia_keys.get("bot"))
-		password = gamepedia_keys.get("password")
-		credentials = AuthCredentials(username=username, password=password)
-		site = EsportsClient('lol', credentials=credentials)
-		await ctx.send('Okay, starting!')
+		site = await utils.login_if_possible(ctx, self.bot, 'lol')
+
+		await ctx.send('Okay, starting now!')
 		VodsToSbRunner(site, self.vod_params).run()
 		await ctx.send('Okay, done!')
