@@ -11,7 +11,7 @@ class MovePage(commands.Cog):
 		self.bot = bot
 		self.summary = 'Moving page + associated subpages'
 
-	@commands.command(pass_context=True)
+	@commands.command()
 	async def move(self, ctx, wiki, p1, p2):
 		site = await utils.login_if_possible(ctx, self.bot, wiki)
 		if site is None:
