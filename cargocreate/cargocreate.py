@@ -11,7 +11,7 @@ class CargoCreate(commands.Cog):
 	
 	@commands.command(pass_context=True)
 	async def cargocreate(self, ctx, wiki, table):
-		site = await utils.login_if_possible(ctx, self.bot, 'lol')
+		site = await utils.login_if_possible(ctx, self.bot, wiki)
 		await ctx.send('Okay, starting!')
 		site.setup_tables(table)
 		await ctx.send('Okay, done!')
