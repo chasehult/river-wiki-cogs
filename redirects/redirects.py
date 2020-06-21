@@ -21,7 +21,7 @@ class Redirects(commands.Cog):
 			return
 		result = site.client.api(action="query", list="querypage", qppage="DoubleRedirects")
 		for item in result['query']['querypage']['results']:
-			source_page = site.pages[item['title']]
+			source_page = site.client.pages[item['title']]
 			target_title = item['databaseResult']['c_title']
 			target_namespace_number = int(item['databaseResult']['c_namespace'])
 			target_namespace = site.namespaces[int(target_namespace_number)]
