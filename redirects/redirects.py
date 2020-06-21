@@ -24,7 +24,7 @@ class Redirects(commands.Cog):
 			source_page = site.client.pages[item['title']]
 			target_title = item['databaseResult']['c_title']
 			target_namespace_number = int(item['databaseResult']['c_namespace'])
-			target_namespace = site.namespaces[int(target_namespace_number)]
+			target_namespace = site.client.namespaces[int(target_namespace_number)]
 			target_page_name = '{}{}'.format(
 				target_namespace + ':' if target_namespace != '' else '',
 				target_title
