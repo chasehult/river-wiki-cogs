@@ -1,6 +1,6 @@
 from river_mwclient.esports_client import EsportsClient
 from river_mwclient.auth_credentials import AuthCredentials
-from lol_esports_parser.parsers.acs.acs_parser import get_acs_game
+from lol_esports_parser.parsers.riot.riot_parser import get_riot_game
 import mwparserfromhell
 import logging
 
@@ -53,7 +53,7 @@ class MhToWinnersRunner(object):
 				template.get('mh').value.strip()
 			)
 			# print(mh_url)
-			game = get_acs_game(mh_url, add_names=False)
+			game = get_riot_game(mh_url, add_names=False)
 			blue = game["teams"]["BLUE"]['name']
 			red = game["teams"]["RED"]['name']
 			blue_team = self.site.cache.get_team_from_event_tricode(overview_page, blue)
