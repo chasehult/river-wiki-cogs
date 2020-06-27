@@ -31,7 +31,7 @@ class MhToWinnersRunner(object):
 	def update_pages(self, pages_to_edit):
 		for item in pages_to_edit:
 			# print(item)
-			page = site.client.pages[item['Page']]
+			page = self.site.client.pages[item['Page']]
 			text = page.text()
 			wikitext = mwparserfromhell.parse(text)
 			self.update_wikitext(wikitext, item['OverviewPage'])
