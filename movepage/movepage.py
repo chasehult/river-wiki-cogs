@@ -1,7 +1,5 @@
 from redbot.core import commands
-from esportswiki_editing import login, EsportsSite
 import rivercogutils as utils
-import mwparserfromhell, re
 
 
 class MovePage(commands.Cog):
