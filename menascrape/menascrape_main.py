@@ -21,6 +21,7 @@ class MenaScraper(object):
 		
 	def run(self):
 		# TODO: parser should return a list of matches
+		print(self.toornament)
 		matches = self.parser.run(self.toornament)
 		text = self.data_page.text()
 		wikitext = mwparserfromhell.parse(text)
@@ -29,6 +30,8 @@ class MenaScraper(object):
 			template: Template
 			if template.name.matches('MatchSchedule'):
 				i += 1
+				if i > len(matches):
+					return
 				match = matches[i]
 				match: Match
 				team1 = template.get('team1').value.strip()
@@ -40,6 +43,7 @@ class MenaScraper(object):
 					template.add('team2score', str(match.team2score))
 					template.add('winner', str(match.winner))
 					# TODO: handle ff?
+		self.data_page.save(str(wikitext))
 
 
 if __name__ == "__main__":
