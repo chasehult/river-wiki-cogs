@@ -17,11 +17,11 @@ class MenaScraper(object):
 			where='OverviewPage="{}"'.format(self.event),
 			fields='ScrapeLink'
 		)
+		self.summary = "Edit made by web scraping!"
 		self.parser = Parser()
 		
 	def run(self):
 		# TODO: parser should return a list of matches
-		print(self.toornament)
 		matches = self.parser.run(self.toornament)
 		text = self.data_page.text()
 		wikitext = mwparserfromhell.parse(text)
@@ -29,9 +29,8 @@ class MenaScraper(object):
 		for template in wikitext.filter_templates():
 			template: Template
 			if template.name.matches('MatchSchedule'):
-				i += 1
-				if i > len(matches):
-					return
+				if i >= len(matches):
+					break
 				match = matches[i]
 				match: Match
 				team1 = template.get('team1').value.strip()
@@ -42,8 +41,13 @@ class MenaScraper(object):
 					template.add('team1score', str(match.team1score))
 					template.add('team2score', str(match.team2score))
 					template.add('winner', str(match.winner))
+					
+					# TODO: remove these teams from being saved, this is temporary while debugging
+					template.add('team1', match.team1)
+					template.add('team2', match.team2)
 					# TODO: handle ff?
-		self.data_page.save(str(wikitext))
+				i += 1
+		self.data_page.save(str(wikitext), summary=self.summary)
 
 
 if __name__ == "__main__":
