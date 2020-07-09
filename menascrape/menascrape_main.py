@@ -18,11 +18,11 @@ class MenaScraper(object):
 			fields='ScrapeLink'
 		)
 		self.summary = "Edit made by web scraping!"
-		self.parser = Parser()
+		self.parser = Parser(self.toornament)
 		
 	def run(self):
 		# TODO: parser should return a list of matches
-		matches = self.parser.run(self.toornament)
+		matches = self.parser.run()
 		text = self.data_page.text()
 		wikitext = mwparserfromhell.parse(text)
 		i = 0
