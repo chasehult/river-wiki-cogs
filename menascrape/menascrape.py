@@ -5,21 +5,26 @@ from toornament_scraper.mena_updater import MenaUpdater
 
 
 class MenaScrape(commands.Cog):
-	"""Scrapes and updates MENA events"""
+	"""Scrapes and updates MENA events."""
 	
 	def __init__(self, bot):
 		self.bot = bot
 		self.summary = 'Moving page + associated subpages'
 
-	@commands.command()
-	async def menascrape(self, ctx, action, *, title):
+	@commands.group()
+	async def menascrape(self, ctx):
+		"""Scrapes and updates MENA events from Toornament website"""
+	
+	@menascrape.command()
+	async def create(self, ctx, *, title):
 		site = await utils.login_if_possible(ctx, self.bot, 'lol')
 		await ctx.send('Okay, starting now!')
-		page_updated = None
-		if action == 'update':
-			page_updated = MenaUpdater(site, title).run()
-		elif action == 'create':
-			page_updated = MenaCreator(site, title).run()
-		else:
-			await ctx.send('Sorry, unknown action!')
+		page_updated = MenaCreator(site, title).run()
+		await ctx.send('Okay, done! See page <{}>'.format(page_updated))
+	
+	@menascrape.command()
+	async def update(self, ctx, *, title):
+		site = await utils.login_if_possible(ctx, self.bot, 'lol')
+		await ctx.send('Okay, starting now!')
+		page_updated = MenaUpdater(site, title).run()
 		await ctx.send('Okay, done! See page <{}>'.format(page_updated))
