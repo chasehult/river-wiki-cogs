@@ -1,6 +1,7 @@
 from redbot.core import commands
 import rivercogutils as utils
 from toornament_scraper.mena_creator import MenaCreator
+from toornament_scraper.ff_checker import FFChecker
 from toornament_scraper.mena_updater import MenaUpdater
 
 
@@ -29,4 +30,12 @@ class MenaScrape(commands.Cog):
 		site = await utils.login_if_possible(ctx, self.bot, 'lol')
 		await ctx.send('Okay, starting now!')
 		page_updated = MenaUpdater(site, title).run()
+		await ctx.send('Okay, done! See page <{}>'.format(page_updated))
+	
+	@menascrape.command()
+	async def checkff(self, ctx, *, title):
+		"""Checks for single-team FFs in place"""
+		site = await utils.login_if_possible(ctx, self.bot, 'lol')
+		await ctx.send('Okay, starting now!')
+		page_updated = FFChecker(site, title).run()
 		await ctx.send('Okay, done! See page <{}>'.format(page_updated))
