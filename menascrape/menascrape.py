@@ -15,10 +15,11 @@ class MenaScrape(commands.Cog):
 	async def menascrape(self, ctx, action, *, title):
 		site = await utils.login_if_possible(ctx, self.bot, 'lol')
 		await ctx.send('Okay, starting now!')
+		page_updated = None
 		if action == 'update':
-			MenaUpdater(site, title).run()
+			page_updated = MenaUpdater(site, title).run()
 		elif action == 'create':
-			MenaCreator(site, title).run()
+			page_updated = MenaCreator(site, title).run()
 		else:
 			await ctx.send('Sorry, unknown action!')
-		await ctx.send('Okay, done!')
+		await ctx.send('Okay, done! See page <{}>'.format(page_updated))
