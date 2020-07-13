@@ -14,7 +14,7 @@ class MenaScrape(commands.Cog):
 
 	@commands.group()
 	async def menascrape(self, ctx):
-		"""Scrapes and updates MENA events from Toornament website. Must add |scrape_link to Infobox Tournament."""
+		"""Scrapes and updates MENA events from Toornament website. Must add |scrape_link= to Infobox Tournament."""
 	
 	@menascrape.command()
 	async def create(self, ctx, *, title):
