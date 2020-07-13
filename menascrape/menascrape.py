@@ -12,7 +12,7 @@ class MenaScrape(commands.Cog):
 		self.summary = 'Moving page + associated subpages'
 
 	@commands.command()
-	async def menascrape(self, ctx, action, title):
+	async def menascrape(self, ctx, action, *, title):
 		site = await utils.login_if_possible(ctx, self.bot, 'lol')
 		await ctx.send('Okay, starting now!')
 		if action == 'update':
