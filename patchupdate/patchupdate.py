@@ -76,6 +76,7 @@ class PatchUpdate(commands.Cog):
     @patchupdate.command()
     async def championstats(self, ctx, version):
         if not re.match(r"\d+\.\d+\.\d+", version): version += ".1"
+        await ctx.send(inline("Okay, starting!"))
         async with aiohttp.ClientSession() as session:
                 async with session.get(DDRAGON.format(version)) as resp:
                     data = json.loads(await resp.text())['data']
@@ -83,4 +84,4 @@ class PatchUpdate(commands.Cog):
             site = await utils.login_if_possible(ctx, self.bot, 'lol')
             self.champion_modifier = TemplateModifier(site, 'Infobox Champion', data,
                                                           summary="Champion Update").run()
-        await ctx.send(inline("Done"))
+        await ctx.send(inline("Okay, done!"))
