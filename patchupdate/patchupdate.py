@@ -77,7 +77,7 @@ class PatchUpdate(commands.Cog):
 
     @patchupdate.command()
     async def championstats(self, ctx, version):
-        if not version.endswith(".1"): version += ".1"
+        if not re.match(r"\d+\.\d+\.\d+", version): version += ".1"
         async with aiohttp.ClientSession() as session:
                 async with session.get(DDRAGON.format(version)) as resp:
                     data = json.loads(await resp.text())['data']
