@@ -1,16 +1,10 @@
 import json
-import pprint
-import warnings
 import re
+
 import aiohttp
-
 import rivercogutils as utils
-from river_mwclient.esports_client import EsportsClient
-from river_mwclient.auth_credentials import AuthCredentials
-from river_mwclient.template_modifier import TemplateModifierBase
 from redbot.core import commands
-from redbot.core.utils.chat_formatting import inline, box, pagify
-
+from river_mwclient.template_modifier import TemplateModifierBase
 
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/champion.json"
 
@@ -21,11 +15,11 @@ capspace = lambda x: re.sub("\s.|^.", lambda x: x.group().upper(), x.lower())
 DDRAGON_FORMAT = {
     "name": lambda d: d['name'],
     "title": lambda d: capfirst(d['title']),
-
+    
     "resource": lambda d: d['partype'],
     "attribute": lambda d: d['tags'][0],
-    "attribute2": lambda d: d['tags'][1] if len(d['tags'])>1 else '',
-
+    "attribute2": lambda d: d['tags'][1] if len(d['tags']) > 1 else '',
+    
     "hp": lambda d: d['stats']['hp'],
     "hp_lvl": lambda d: d['stats']['hpperlevel'],
     "hpregen": lambda d: d['stats']['hpregen'],
@@ -56,32 +50,30 @@ class TemplateModifier(TemplateModifierBase):
                          limit=limit, summary=summary, quiet=quiet, lag=lag, tags=tags,
                          skip_pages=skip_pages,
                          startat_page=startat_page)
-
+    
     def update_template(self, template):
         champdata = self.data[template.get("ddragon_key").value.strip()]
         for item, func in DDRAGON_FORMAT.items():
             template.add(item, str(func(champdata)))
 
 
-
 class PatchUpdate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-
+    
     @commands.group()
     async def patchupdate(self, ctx):
         pass
-
+    
     @patchupdate.command()
     async def championstats(self, ctx, version):
         if not re.match(r"\d+\.\d+\.\d+", version): version += ".1"
         await ctx.send("Okay, starting!")
         async with aiohttp.ClientSession() as session:
-                async with session.get(DDRAGON.format(version)) as resp:
-                    data = json.loads(await resp.text())['data']
+            async with session.get(DDRAGON.format(version)) as resp:
+                data = json.loads(await resp.text())['data']
         async with ctx.typing():
             site = await utils.login_if_possible(ctx, self.bot, 'lol')
             self.champion_modifier = TemplateModifier(site, 'Infobox Champion', data,
-                                                          summary="Champion Update").run()
+                                                      summary="Champion Update").run()
         await ctx.send("Okay, done!")
