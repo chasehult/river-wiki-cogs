@@ -2,9 +2,9 @@ import json
 import pprint
 import warnings
 import re
-warnings.filterwarnings("ignore", category=DeprecationWarning)
 import aiohttp
 
+import rivercogutils as utils
 from river_mwclient.esports_client import EsportsClient
 from river_mwclient.auth_credentials import AuthCredentials
 from river_mwclient.template_modifier import TemplateModifierBase
@@ -13,8 +13,6 @@ from redbot.core.utils.chat_formatting import inline, box, pagify
 
 
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/champion.json"
-credentials = AuthCredentials(user_file="bot")
-site = EsportsClient('lol', credentials=credentials)
 
 restrip = lambda x: re.sub(r'[^A-Za-z]', '', capspace(x.strip()))
 capfirst = lambda x: re.sub("^.", lambda x: x.group().upper(), x)
@@ -82,9 +80,7 @@ class PatchUpdate(commands.Cog):
                 async with session.get(DDRAGON.format(version)) as resp:
                     data = json.loads(await resp.text())['data']
         async with ctx.typing():
-            try:
-                self.champion_modifier = TemplateModifier(site, 'Infobox Champion', data,
+            site = await utils.login_if_possible(ctx, self.bot, 'lol')
+            self.champion_modifier = TemplateModifier(site, 'Infobox Champion', data,
                                                           summary="Champion Update").run()
-            except IOError:
-                pass
         await ctx.send(inline("Done"))
