@@ -4,6 +4,7 @@ import re
 import aiohttp
 import rivercogutils as utils
 from redbot.core import commands
+from river_mwclient.wiki_client import WikiClient
 from river_mwclient.template_modifier import TemplateModifierBase
 
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/champion.json"
@@ -42,7 +43,7 @@ DDRAGON_FORMAT = {
 
 
 class TemplateModifier(TemplateModifierBase):
-    def __init__(self, site: 'WikiClient', template, data, page_list=None, title_list=None,
+    def __init__(self, site: WikiClient, template, data, page_list=None, title_list=None,
                  limit=-1, summary=None, quiet=False, lag=0, tags=None, skip_pages=None,
                  startat_page=None):
         self.data = data
