@@ -22,3 +22,8 @@ Replace `RheingoldRiver` with your account name, `Nami` with the name of your bo
 It's suggested to use a unique bot password for this that you don't also use for another purpose (e.g. AWB, etc.)
 
 There is one bot password per installation, so users will send edits as you when using these cogs.
+
+## Development
+You will need to use the following repo: https://github.com/RheingoldRiver/rivercogutils
+
+Please try and keep all global Red-related dependencies there. Dependencies unrelated to Red may belong in river_mwclient instead: https://github.com/RheingoldRiver/river_mwclient
