@@ -53,7 +53,9 @@ class TemplateModifier(TemplateModifierBase):
                          startat_page=startat_page)
     
     def update_template(self, template):
-        champdata = self.data[template.get("ddragon_key").value.strip()]
+        champdata = self.data.get(template.get("ddragon_key").value.strip())
+        if champdata is None:
+            return
         for item, func in DDRAGON_FORMAT.items():
             template.add(item, str(func(champdata)))
 
