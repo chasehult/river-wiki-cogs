@@ -18,7 +18,7 @@ restrip = lambda x: re.sub(r'[^A-Za-z]', '', capspace(x.strip()))
 capfirst = lambda x: re.sub(r"^.", lambda x: x.group().upper(), x)
 capspace = lambda x: re.sub(r"\s.|^.", lambda x: x.group().upper(), x.lower())
 ifinelse = lambda d, k: d[k] if k and k in d else ''
-strperc = lambda i: '' if not i else str(int(i)*100)+"%" if float(i*100)%1==0 else str(float(i*100))+"%"
+strperc = lambda i: '' if not i else str(int(float(i)*100))+"%" if float(i*100)%1==0 else str(float(i*100))+"%"
 
 
 def async_wrap(func):
