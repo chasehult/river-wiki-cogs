@@ -37,7 +37,7 @@ class MhToWinnersRunner(object):
 			self.update_wikitext(wikitext, item['OverviewPage'])
 			new_text = str(wikitext)
 			if new_text != text:
-				page.save(new_text, summary=self.summary)
+				self.site.save_page_with_retry_login(page, new_text, summary=self.summary)
 	
 	def update_wikitext(self, wikitext, overview_page):
 		for template in wikitext.filter_templates():
