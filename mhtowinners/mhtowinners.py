@@ -3,6 +3,7 @@ import rivercogutils as utils
 import logging
 from mhtowinners.mhtowinners_main import MhToWinnersRunner
 
+
 class MhToWinners(commands.Cog):
 	"""Discovers & updates scoreboards on Leaguepedia that are missing vods"""
 	
