@@ -90,7 +90,7 @@ class VodsToSbRunner(object):
     def save_page(self, page):
         new_text = str(page['wikitext'])
         if new_text != page['page'].text():
-            self.site.save_page_with_retry_login(page['page'], new_text, summary=self.summary)
+            self.site.save_with_retry_login(page['page'], new_text, summary=self.summary)
 
 
 if __name__ == '__main__':
