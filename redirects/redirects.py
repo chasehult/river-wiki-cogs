@@ -1,6 +1,7 @@
 from redbot.core import commands
 import rivercogutils as utils
 import mwparserfromhell, re
+from river_mwclient.esports_client import EsportsClient
 
 
 class Redirects(commands.Cog):
@@ -17,6 +18,7 @@ class Redirects(commands.Cog):
 	@redirects.command(pass_context=True)
 	async def double(self, ctx, wiki):
 		site = await utils.login_if_possible(ctx, self.bot, wiki)
+		site: EsportsClient
 		if site is None:
 			return
 		result = site.client.api(action="query", list="querypage", qppage="DoubleRedirects")
@@ -29,6 +31,6 @@ class Redirects(commands.Cog):
 				target_namespace + ':' if target_namespace != '' else '',
 				target_title
 			)
-			source_page.save('#redirect[[%s]]' % target_page_name, summary=self.summary)
+			site.save_with_retry_login(source_page, text='#redirect[[%s]]' % target_page_name, summary=self.summary)
 		
 		return await ctx.send("Okay, should be done!")
