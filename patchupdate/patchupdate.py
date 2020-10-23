@@ -18,7 +18,8 @@ restrip = lambda x: re.sub(r'[^A-Za-z]', '', capspace(x.strip()))
 capfirst = lambda x: re.sub(r"^.", lambda x: x.group().upper(), x)
 capspace = lambda x: re.sub(r"\s.|^.", lambda x: x.group().upper(), x.lower())
 ifinelse = lambda d, k: d[k] if k and k in d else ''
-strperc = lambda i: '' if not i else str(int(float(i)*100))+"%" if float(i*100)%1==0 else str(float(i*100))+"%"
+strperc = lambda i: '' if not i else str(int(float(i) * 100)) + "%" if float(i * 100) % 1 == 0 else str(
+    float(i * 100)) + "%"
 
 
 def async_wrap(func):
@@ -28,16 +29,18 @@ def async_wrap(func):
             loop = asyncio.get_event_loop()
         pfunc = partial(func, *args, **kwargs)
         return await loop.run_in_executor(executor, pfunc)
+    
     return run
+
 
 DD_CHAMPION_FORMAT = {
     "name": lambda d: d['name'],
     "title": lambda d: capfirst(d['title']),
-
+    
     "resource": lambda d: d['partype'],
     "attribute": lambda d: d['tags'][0],
     "attribute2": lambda d: d['tags'][1] if len(d['tags']) > 1 else '',
-
+    
     "hp": lambda d: d['stats']['hp'],
     "hp_lvl": lambda d: d['stats']['hpperlevel'],
     "hpregen": lambda d: d['stats']['hpregen'],
@@ -58,18 +61,20 @@ DD_CHAMPION_FORMAT = {
     "ms": lambda d: d['stats']['movespeed'],
 }
 
+
 def item_extras(d, t):
     usedin = []
     index = 1
-    while t.has("used in "+str(index)):
-        usedin.append(t.get("used in "+str(index)).value.strip())
+    while t.has("used in " + str(index)):
+        usedin.append(t.get("used in " + str(index)).value.strip())
         index += 1
     t.add("used_in", ','.join(usedin))
+
 
 DD_ITEM_FORMAT = {
     "name": lambda d: d['name'],
     "item_code": lambda d: None,
-
+    
     "ad": lambda d: ifinelse(d['stats'], 'FlatPhysicalDamageMod'),
     "ls": lambda d: strperc(ifinelse(d['stats'], 'PercentLifeStealMod')),
     "hp": lambda d: ifinelse(d['stats'], 'FlatHPPoolMod'),
@@ -94,17 +99,15 @@ DD_ITEM_FORMAT = {
     # "onhit": lambda d: ifinelse(d['stats'], ''),
     # "bonushp": lambda d: ifinelse(d['stats'], ''),
     # "healing": lambda d: ifinelse(d['stats'], ''),
-
-
-
+    
     "totalgold": lambda d: d['gold']['total'],
     "sold": lambda d: d['gold']['sell'],
-
+    
     "extras": item_extras,
 }
 
-
 SPEC_ITEMS = ['extras']
+
 
 class TemplateModifier(TemplateModifierBase):
     def __init__(self, site: WikiClient, template, data, data_format, page_list=None,
@@ -117,11 +120,11 @@ class TemplateModifier(TemplateModifierBase):
                          limit=limit, summary=summary, quiet=quiet, lag=lag, tags=tags,
                          skip_pages=skip_pages,
                          startat_page=startat_page)
-
+    
     @async_wrap
     def fakesync_run(self):
         self.run()
-
+    
     def update_template(self, template):
         '''
         key = [k for k,v in self.data.items() if v['name'] == template.get("name").value.strip()]
@@ -153,34 +156,34 @@ class TemplateModifier(TemplateModifierBase):
 class PatchUpdate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
+    
     @commands.group()
     async def patchupdate(self, ctx):
         pass
-
+    
     async def updatestats(self, ctx, version, section, formatdict):
         async with aiohttp.ClientSession() as session:
             if version is None:
                 async with session.get(DDRAGON_V) as resp:
                     version = json.loads(await resp.text())[0]
             elif not re.match(r"\d+\.\d+\.\d+", version):
-                 version += ".1"
+                version += ".1"
             await ctx.send("Okay, starting!")
             async with session.get(DDRAGON.format(version, section.lower())) as resp:
                 data = json.loads(await resp.text())['data']
         async with ctx.typing():
             site = await utils.login_if_possible(ctx, self.bot, 'lol')
-            tm = TemplateModifier(site, 'Infobox '+section, data, formatdict,
-                                  summary=section+" Update for " + version)
+            tm = TemplateModifier(site, 'Infobox ' + section, data, formatdict,
+                                  summary=section + " Update for " + version)
             await tm.fakesync_run()
             print(tm.tba)
         print("Done")
         await ctx.send("Okay, done!")
-
+    
     @patchupdate.command()
     async def championstats(self, ctx, version=None):
         await self.updatestats(ctx, version, "Champion", DD_CHAMPION_FORMAT)
-
+    
     @patchupdate.command()
     async def itemstats(self, ctx, version=None):
         await self.updatestats(ctx, version, "Item", DD_ITEM_FORMAT)
