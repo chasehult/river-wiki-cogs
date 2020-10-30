@@ -9,7 +9,7 @@ class Redirects(commands.Cog):
     
     def __init__(self, bot):
         self.bot = bot
-        self.summary = 'Fixing double redirect'
+        self.summary = 'Fixing double redirect, requested via Namibot'
     
     @commands.group(pass_context=True)
     async def redirects(self, ctx):
@@ -24,13 +24,21 @@ class Redirects(commands.Cog):
         result = site.client.api(action="query", list="querypage", qppage="DoubleRedirects")
         for item in result['query']['querypage']['results']:
             source_page = site.client.pages[item['title']]
-            target_title = item['databaseResult']['c_title']
-            target_namespace_number = int(item['databaseResult']['c_namespace'])
-            target_namespace = site.client.namespaces[int(target_namespace_number)]
-            target_page_name = '{}{}'.format(
-                target_namespace + ':' if target_namespace != '' else '',
-                target_title
-            )
-            site.save_with_retry_login(source_page, text='#redirect[[%s]]' % target_page_name, summary=self.summary)
+            
+            # the following code is only used because miser mode is enabled:
+            target_title_1 = site.target(source_page.name)
+            target_title_2 = site.target(target_title_1)
+            
+            # the following code would be used if miser mode were not enabled:
+            
+            # target_title = item['databaseResult']['c_title']
+            # target_namespace_number = int(item['databaseResult']['c_namespace'])
+            # target_namespace = site.client.namespaces[int(target_namespace_number)]
+            # target_page_name = '{}{}'.format(
+            #     target_namespace + ':' if target_namespace != '' else '',
+            #     target_title
+            # )
+            
+            site.save_with_retry_login(source_page, text='#redirect[[%s]]' % target_title_2, summary=self.summary)
         
         return await ctx.send("Okay, should be done!")
