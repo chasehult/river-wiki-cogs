@@ -39,6 +39,6 @@ class Redirects(commands.Cog):
             #     target_title
             # )
             
-            site.save_with_retry_login(source_page, text='#redirect[[%s]]' % target_title_2, summary=self.summary)
+            # site.save(source_page, text='#redirect[[%s]]' % target_title_2, summary=self.summary)
         
         return await ctx.send("Okay, should be done!")
