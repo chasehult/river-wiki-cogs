@@ -12,7 +12,7 @@ class FnCheckResults(commands.Cog):
         self.bot = bot
         
     @commands.command(pass_context=True)
-    async def fncheckresults(self, ctx, title):
+    async def fncheckresults(self, ctx, *, title):
         site = await utils.login_if_possible(ctx, self.bot, 'fortnite')
         await ctx.send('Okay, starting!')
         result = check_results(site, title)
@@ -20,7 +20,7 @@ class FnCheckResults(commands.Cog):
             await ctx.send('Everything looks good!')
             return
         await ctx.send('Uhoh, there\'s some problems, printing...')
-        async for item in result:
+        for item in result:
             await ctx.send('Player: {} Team: {}'.format(
                 item['Player'],
                 item['Team']
