@@ -1,5 +1,6 @@
 import rivercogutils as utils
 from redbot.core import commands
+from requests.exceptions import ReadTimeout
 
 from vodstosb.vodstosb_main import VodsToSbRunner
 
@@ -17,5 +18,9 @@ class VodsToSb(commands.Cog):
         site = await utils.login_if_possible(ctx, self.bot, 'lol')
         
         await ctx.send('Okay, starting now!')
-        VodsToSbRunner(site, self.vod_params).run()
+        try:
+            VodsToSbRunner(site, self.vod_params).run()
+        except ReadTimeout:
+            await ctx.send('Whoops, the site is taking too long to respond, try again later')
+            return
         await ctx.send('Okay, done!')
