@@ -32,8 +32,12 @@ END = "{{MatchSchedule/End}}\n"
 
 class MatchScheduleParser(commands.Cog):
 
-    @commands.command()
-    async def parseschedule(self, ctx, tournament, stream=""):
+    @commands.group()
+    async def lolesportsparser(self, ctx):
+        """Commands to parse lolesports match schedules"""
+
+    @lolesportsparser.command()
+    async def parse(self, ctx, tournament, stream=""):
         try:
             schedule = get_schedule(tournament, stream)
         except TypeError:
@@ -44,6 +48,11 @@ class MatchScheduleParser(commands.Cog):
                 return
         await ctx.author.send(file=text_to_file(schedule, filename="matchschedule.txt"))
         await ctx.send("Check your DMs!")
+
+    @lolesportsparser.command()
+    async def list(self, ctx):
+        leagues = get_leagues()
+        await ctx.send(leagues)
 
 
 def get_headers():
@@ -74,6 +83,19 @@ def get_league(league_name, headers):
     league_dict = next((league_dict for league_dict in json_leagues if league_dict["name"] == league_name), None)
     league_id = league_dict["id"]
     return league_id
+
+
+def get_leagues():
+    headers = get_headers()
+    leagues = "Leagues available on lolesports.com are:\n```"
+    json_leagues = get_json(LEAGUES, headers)
+    json_leagues = filter_json(json_leagues, "data", "leagues")
+    for league in json_leagues:
+        print(type(league))
+        print(league)
+        leagues = leagues + league["name"] + "\n"
+    leagues = leagues + "```"
+    return leagues
 
 
 def filter_json(json_file, *args):
