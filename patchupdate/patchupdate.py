@@ -176,7 +176,7 @@ class PatchUpdate(commands.Cog):
             tm = TemplateModifier(site, 'Infobox ' + section, data, formatdict,
                                   summary=section + " Update for " + version)
             await tm.fakesync_run()
-            site.report_all_errors()
+            site.report_all_errors('patchupdate')
             print(tm.tba)
         print("Done")
         await ctx.send("Okay, done!")
