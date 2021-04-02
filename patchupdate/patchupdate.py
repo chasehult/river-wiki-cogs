@@ -1,15 +1,13 @@
+import asyncio
 import json
 import re
-import asyncio
-import aiohttp
-
 from functools import wraps, partial
-from pprint import pprint, pformat
 
+import aiohttp
 import rivercogutils as utils
 from redbot.core import commands
-from river_mwclient.wiki_client import WikiClient
 from river_mwclient.template_modifier import TemplateModifierBase
+from river_mwclient.wiki_client import WikiClient
 
 DDRAGON_V = "https://ddragon.leagueoflegends.com/api/versions.json"
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/{}.json"
@@ -36,6 +34,8 @@ def async_wrap(func):
 DD_CHAMPION_FORMAT = {
     "name": lambda d: d['name'],
     "title": lambda d: capfirst(d['title']),
+    
+    "key_int": lambda d: d['key'],
     
     "resource": lambda d: d['partype'],
     "attribute": lambda d: d['tags'][0],
@@ -126,16 +126,18 @@ class TemplateModifier(TemplateModifierBase):
         self.run()
     
     def update_template(self, template):
-        '''
+        """
         key = [k for k,v in self.data.items() if v['name'] == template.get("name").value.strip()]
         if len(key)==1:
             template.add("ddragon_key", key[0])
         elif len(key)>1:
             print(template, key)
-        '''
+        """
         if not (template.has("ddragon_key") and template.get("ddragon_key").value.strip()):
             return
-        formdata = self.data[template.get("ddragon_key").value.strip()]
+        formdata = self.data.get(template.get("ddragon_key").value.strip())
+        if not formdata:
+            return
         for item, func in self.data_format.items():
             if item in SPEC_ITEMS:
                 continue
@@ -150,7 +152,8 @@ class TemplateModifier(TemplateModifierBase):
                     template.remove(item, True)
             '''
         for spec in SPEC_ITEMS:
-            if spec in self.data_format: self.data_format[spec](self.data, template)
+            if spec in self.data_format:
+                self.data_format[spec](self.data, template)
 
 
 class PatchUpdate(commands.Cog):
