@@ -176,6 +176,7 @@ class PatchUpdate(commands.Cog):
             tm = TemplateModifier(site, 'Infobox ' + section, data, formatdict,
                                   summary=section + " Update for " + version)
             await tm.fakesync_run()
+            site.report_all_errors()
             print(tm.tba)
         print("Done")
         await ctx.send("Okay, done!")
@@ -183,9 +184,7 @@ class PatchUpdate(commands.Cog):
     @patchupdate.command()
     async def championstats(self, ctx, version=None):
         await self.updatestats(ctx, version, "Champion", DD_CHAMPION_FORMAT)
-        self.site.report_all_errors()
     
     @patchupdate.command()
     async def itemstats(self, ctx, version=None):
         await self.updatestats(ctx, version, "Item", DD_ITEM_FORMAT)
-        self.site.report_all_errors()
