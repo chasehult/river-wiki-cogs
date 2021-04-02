@@ -126,18 +126,17 @@ class TemplateModifier(TemplateModifierBase):
         self.run()
     
     def update_template(self, template):
-        """
-        key = [k for k,v in self.data.items() if v['name'] == template.get("name").value.strip()]
-        if len(key)==1:
-            template.add("ddragon_key", key[0])
-        elif len(key)>1:
-            print(template, key)
-        """
+        # key = [k for k,v in self.data.items() if v['name'] == template.get("name").value.strip()]
+        # if len(key)==1:
+        #     template.add("ddragon_key", key[0])
+        # elif len(key)>1:
+        #     print(template, key)
         if not (template.has("ddragon_key")):
             template.add('ddragon_key', template.get('name').value.strip().replace(' ', '').replace("'", ''))
         formdata = self.data.get(template.get("ddragon_key").value.strip())
         if not formdata:
             self.site.log_error_content(self.current_page.name, 'Could not load Ddragon data')
+            return
         for item, func in self.data_format.items():
             if item in SPEC_ITEMS:
                 continue
@@ -146,11 +145,9 @@ class TemplateModifier(TemplateModifierBase):
                 template.add(item, str(func(formdata)))
             elif newval is None:
                 template.remove(item, True)
-            '''
-            else:
-                if template.has(item) and not template.get(item).value.strip():
-                    template.remove(item, True)
-            '''
+            # else:
+            #     if template.has(item) and not template.get(item).value.strip():
+            #         template.remove(item, True)
         for spec in SPEC_ITEMS:
             if spec in self.data_format:
                 self.data_format[spec](self.data, template)
