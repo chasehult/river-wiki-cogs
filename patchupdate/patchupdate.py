@@ -2,6 +2,7 @@ import asyncio
 import json
 import re
 from functools import wraps, partial
+from typing import Optional
 
 import aiohttp
 import rivercogutils as utils
@@ -13,11 +14,11 @@ DDRAGON_V = "https://ddragon.leagueoflegends.com/api/versions.json"
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/{}.json"
 
 restrip = lambda x: re.sub(r'[^A-Za-z]', '', capspace(x.strip()))
-capfirst = lambda x: re.sub(r"^.", lambda x: x.group().upper(), x)
-capspace = lambda x: re.sub(r"\s.|^.", lambda x: x.group().upper(), x.lower())
+capfirst = lambda x: re.sub(r'^.', lambda x: x.group().upper(), x)
+capspace = lambda x: re.sub(r'\s.|^.', lambda x: x.group().upper(), x.lower())
 ifinelse = lambda d, k: d[k] if k and k in d else ''
-strperc = lambda i: '' if not i else str(int(float(i) * 100)) + "%" if float(i * 100) % 1 == 0 else str(
-    float(i * 100)) + "%"
+strperc = lambda i: '' if not i else str(int(float(i) * 100)) + '%' if float(i * 100) % 1 == 0 else str(
+    float(i * 100)) + '%'
 
 
 def async_wrap(func):
@@ -30,91 +31,108 @@ def async_wrap(func):
     
     return run
 
+class Formatter:
+    @classmethod
+    def format(cls, d):
+        raise NotImplementedError()
 
-DD_CHAMPION_FORMAT = {
-    "name": lambda d: d['name'],
-    "title": lambda d: capfirst(d['title']),
-    
-    "key_int": lambda d: d['key'],
-    
-    "resource": lambda d: d['partype'],
-    "attribute": lambda d: d['tags'][0],
-    "attribute2": lambda d: d['tags'][1] if len(d['tags']) > 1 else '',
-    
-    "hp": lambda d: d['stats']['hp'],
-    "hp_lvl": lambda d: d['stats']['hpperlevel'],
-    "hpregen": lambda d: d['stats']['hpregen'],
-    "hpregen_lvl": lambda d: d['stats']['hpregenperlevel'],
-    "mana": lambda d: d['stats']['mp'] if d['partype'] == "Mana" else '',
-    "mana_lvl": lambda d: d['stats']['mpperlevel'] if d['partype'] == "Mana" else '',
-    "mregen": lambda d: d['stats']['mpregen'] if d['partype'] == "Mana" else '',
-    "mregen_lvl": lambda d: d['stats']['mpregenperlevel'] if d['partype'] == "Mana" else '',
-    "range": lambda d: d['stats']['attackrange'],
-    "ad": lambda d: d['stats']['attackdamage'],
-    "ad_lvl": lambda d: d['stats']['attackdamageperlevel'],
-    "as": lambda d: d['stats']['attackspeed'],
-    "as_lvl": lambda d: d['stats']['attackspeedperlevel'],
-    "armor": lambda d: d['stats']['armor'],
-    "armor_lvl": lambda d: d['stats']['armorperlevel'],
-    "mr": lambda d: d['stats']['spellblock'],
-    "mr_lvl": lambda d: d['stats']['spellblockperlevel'],
-    "ms": lambda d: d['stats']['movespeed'],
-}
+    @classmethod
+    def extras(cls, d, t):
+        return
+
+class ChampionFormatter(Formatter):
+    @classmethod
+    def format(cls, d):
+        return {
+            'name': d['name'],
+            'title': capfirst(d['title']),
+
+            'key_int': d['key'],
+
+            'resource': d['partype'],
+            'attribute': d['tags'][0],
+            'attribute2': d['tags'][1] if len(d['tags']) > 1 else '',
+
+            'hp': d['stats']['hp'],
+            'hp_lvl': d['stats']['hpperlevel'],
+            'hpregen': d['stats']['hpregen'],
+            'hpregen_lvl': d['stats']['hpregenperlevel'],
+            'mana': d['stats']['mp'] if d['partype'] == 'Mana' else '',
+            'mana_lvl': d['stats']['mpperlevel'] if d['partype'] == 'Mana' else '',
+            'mregen': d['stats']['mpregen'] if d['partype'] == 'Mana' else '',
+            'mregen_lvl': d['stats']['mpregenperlevel'] if d['partype'] == 'Mana' else '',
+            'range': d['stats']['attackrange'],
+            'ad': d['stats']['attackdamage'],
+            'ad_lvl': d['stats']['attackdamageperlevel'],
+            'as': d['stats']['attackspeed'],
+            'as_lvl': d['stats']['attackspeedperlevel'],
+            'armor': d['stats']['armor'],
+            'armor_lvl': d['stats']['armorperlevel'],
+            'mr': d['stats']['spellblock'],
+            'mr_lvl': d['stats']['spellblockperlevel'],
+            'ms': d['stats']['movespeed'],
+
+            'extras': cls.extras,
+        }
 
 
-def item_extras(d, t):
-    usedin = []
-    index = 1
-    while t.has("used in " + str(index)):
-        usedin.append(t.get("used in " + str(index)).value.strip())
-        index += 1
-    t.add("used_in", ','.join(usedin))
+class ItemFormatter(Formatter):
+    @classmethod
+    def format(cls, d):
+        return {
+            'name': d['name'],
+            'item_code': None,
 
+            'ad': ifinelse(d['stats'], 'FlatPhysicalDamageMod'),
+            'ls': strperc(ifinelse(d['stats'], 'PercentLifeStealMod')),
+            'hp': ifinelse(d['stats'], 'FlatHPPoolMod'),
+            'hpregen': ifinelse(d['stats'], 'FlatHPRegenMod'),
+            'armor': ifinelse(d['stats'], 'FlatArmorMod'),
+            'mr': ifinelse(d['stats'], 'FlatSpellBlockMod'),
+            'crit': ifinelse(d['stats'], 'FlatCritChanceMod'),
+            'as': strperc(ifinelse(d['stats'], 'PercentAttackSpeedMod')),
+            # 'armorpen': ifinelse(d['stats'], ''),
+            # 'range': ifinelse(d['stats'], ''),
+            # 'mana': ifinelse(d['stats'], ''),
+            # 'manaregen': ifinelse(d['stats'], ''),
+            # 'energy': ifinelse(d['stats'], ''),
+            # 'energyregen': ifinelse(d['stats'], ''),
+            # 'ap': ifinelse(d['stats'], ''),
+            # 'cdr': ifinelse(d['stats'], ''),
+            # 'spellvamp': ifinelse(d['stats'], ''),
+            # 'magicpen': ifinelse(d['stats'], ''),
+            # 'ms': ifinelse(d['stats'], ''),
+            # 'tenacity': ifinelse(d['stats'], ''),
+            # 'goldgen': ifinelse(d['stats'], ''),
+            # 'onhit': ifinelse(d['stats'], ''),
+            # 'bonushp': ifinelse(d['stats'], ''),
+            # 'healing': ifinelse(d['stats'], ''),
 
-DD_ITEM_FORMAT = {
-    "name": lambda d: d['name'],
-    "item_code": lambda d: None,
-    
-    "ad": lambda d: ifinelse(d['stats'], 'FlatPhysicalDamageMod'),
-    "ls": lambda d: strperc(ifinelse(d['stats'], 'PercentLifeStealMod')),
-    "hp": lambda d: ifinelse(d['stats'], 'FlatHPPoolMod'),
-    "hpregen": lambda d: ifinelse(d['stats'], 'FlatHPRegenMod'),
-    "armor": lambda d: ifinelse(d['stats'], 'FlatArmorMod'),
-    "mr": lambda d: ifinelse(d['stats'], 'FlatSpellBlockMod'),
-    "crit": lambda d: ifinelse(d['stats'], 'FlatCritChanceMod'),
-    "as": lambda d: strperc(ifinelse(d['stats'], 'PercentAttackSpeedMod')),
-    # "armorpen": lambda d: ifinelse(d['stats'], ''),
-    # "range": lambda d: ifinelse(d['stats'], ''),
-    # "mana": lambda d: ifinelse(d['stats'], ''),
-    # "manaregen": lambda d: ifinelse(d['stats'], ''),
-    # "energy": lambda d: ifinelse(d['stats'], ''),
-    # "energyregen": lambda d: ifinelse(d['stats'], ''),
-    # "ap": lambda d: ifinelse(d['stats'], ''),
-    # "cdr": lambda d: ifinelse(d['stats'], ''),
-    # "spellvamp": lambda d: ifinelse(d['stats'], ''),
-    # "magicpen": lambda d: ifinelse(d['stats'], ''),
-    # "ms": lambda d: ifinelse(d['stats'], ''),
-    # "tenacity": lambda d: ifinelse(d['stats'], ''),
-    # "goldgen": lambda d: ifinelse(d['stats'], ''),
-    # "onhit": lambda d: ifinelse(d['stats'], ''),
-    # "bonushp": lambda d: ifinelse(d['stats'], ''),
-    # "healing": lambda d: ifinelse(d['stats'], ''),
-    
-    "totalgold": lambda d: d['gold']['total'],
-    "sold": lambda d: d['gold']['sell'],
-    
-    "extras": item_extras,
-}
+            'totalgold': d['gold']['total'],
+            'sold': d['gold']['sell'],
+
+            'extras': cls.extras,
+        }
+
+    @classmethod
+    def extras(cls, d, t):
+        usedin = []
+        index = 1
+        while t.has("used in " + str(index)):
+            usedin.append(t.get("used in " + str(index)).value.strip())
+            index += 1
+        t.add("used_in", ','.join(usedin))
+
 
 SPEC_ITEMS = ['extras']
 
 
 class TemplateModifier(TemplateModifierBase):
-    def __init__(self, site: WikiClient, template, data, data_format, page_list=None,
+    def __init__(self, site: WikiClient, template, data, formatter, page_list=None,
                  title_list=None, limit=-1, summary=None, quiet=False, lag=0,
                  tags=None, skip_pages=None, startat_page=None):
         self.data = data
-        self.data_format = data_format
+        self.formatter = formatter
         self.tba = set()
         super().__init__(site, template, page_list=page_list, title_list=title_list,
                          limit=limit, summary=summary, quiet=quiet, lag=lag, tags=tags,
@@ -126,65 +144,57 @@ class TemplateModifier(TemplateModifierBase):
         self.run()
     
     def update_template(self, template):
-        # key = [k for k,v in self.data.items() if v['name'] == template.get("name").value.strip()]
-        # if len(key)==1:
-        #     template.add("ddragon_key", key[0])
-        # elif len(key)>1:
-        #     print(template, key)
-        if not (template.has("ddragon_key")):
-            template.add('ddragon_key', template.get('name').value.strip().replace(' ', '').replace("'", ''))
-        formdata = self.data.get(template.get("ddragon_key").value.strip())
-        if not formdata:
-            self.site.log_error_content(self.current_page.name, 'Could not load Ddragon data')
+        key = [k for k,v in self.data.items() if v.get('name') == template.get('name', '').value.strip()]
+        if len(key)==1:
+            template.add('ddragon_key', key[0])
+            data = self.formatter.format(self.data.get(key[0]))
+        else:
+            self.site.log_error_content(self.current_page.name, "Duplicate or missing DDragon data")
             return
-        for item, func in self.data_format.items():
-            if item in SPEC_ITEMS:
+
+        for key, value in data:
+            if key in SPEC_ITEMS:
                 continue
-            newval = str(func(formdata))
-            if newval:
-                template.add(item, str(func(formdata)))
-            elif newval is None:
-                template.remove(item, True)
-            # else:
-            #     if template.has(item) and not template.get(item).value.strip():
-            #         template.remove(item, True)
+            if str(value):
+                template.add(key, str(value))
+            else:
+                if template.has(key) and not template.get(key).value.strip():
+                    template.remove(key, True)
         for spec in SPEC_ITEMS:
-            if spec in self.data_format:
-                self.data_format[spec](self.data, template)
+            if spec in data:
+                data[spec](self.data, template)
 
 
 class PatchUpdate(commands.Cog):
     def __init__(self, bot):
+        super().__init__()
         self.bot = bot
     
     @commands.group()
     async def patchupdate(self, ctx):
         pass
     
-    async def updatestats(self, ctx, version, section, formatdict):
-        async with aiohttp.ClientSession() as session:
+    async def updatestats(self, ctx, version: Optional[str], section: str, formatter: Formatter):
+        async with aiohttp.ClientSession() as session, ctx.typing():
             if version is None:
                 async with session.get(DDRAGON_V) as resp:
                     version = json.loads(await resp.text())[0]
-            elif not re.match(r"\d+\.\d+\.\d+", version):
+            elif not re.match(r'\d+\.\d+\.\d+', version):
                 version += ".1"
             await ctx.send("Okay, starting!")
             async with session.get(DDRAGON.format(version, section.lower())) as resp:
                 data = json.loads(await resp.text())['data']
-        async with ctx.typing():
             site = await utils.login_if_possible(ctx, self.bot, 'lol')
-            tm = TemplateModifier(site, 'Infobox ' + section, data, formatdict,
+            tm = TemplateModifier(site, "Infobox " + section, data, formatter,
                                   summary=section + " Update for " + version)
             await tm.fakesync_run()
             site.report_all_errors('patchupdate')
-            print(tm.tba)
-        print("Done")
         await ctx.send("Okay, done!")
     
     @patchupdate.command()
     async def championstats(self, ctx, version=None):
-        await self.updatestats(ctx, version, "Champion", DD_CHAMPION_FORMAT)
+        await self.updatestats(ctx, version, 'Champion', ChampionFormatter)
     
     @patchupdate.command()
     async def itemstats(self, ctx, version=None):
-        await self.updatestats(ctx, version, "Item", DD_ITEM_FORMAT)
+        await self.updatestats(ctx, version, 'Item', ItemFormatter)
