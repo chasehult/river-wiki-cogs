@@ -133,11 +133,11 @@ class TemplateModifier(TemplateModifierBase):
         elif len(key)>1:
             print(template, key)
         """
-        if not (template.has("ddragon_key") and template.get("ddragon_key").value.strip()):
-            return
+        if not (template.has("ddragon_key")):
+            template.add('ddragon_key', template.get('name').value.strip().replace(' ', '').replace("'", ''))
         formdata = self.data.get(template.get("ddragon_key").value.strip())
         if not formdata:
-            return
+            self.site.log_error_content(self.current_page.name, 'Could not load Ddragon data')
         for item, func in self.data_format.items():
             if item in SPEC_ITEMS:
                 continue
@@ -186,7 +186,9 @@ class PatchUpdate(commands.Cog):
     @patchupdate.command()
     async def championstats(self, ctx, version=None):
         await self.updatestats(ctx, version, "Champion", DD_CHAMPION_FORMAT)
+        self.site.report_all_errors()
     
     @patchupdate.command()
     async def itemstats(self, ctx, version=None):
         await self.updatestats(ctx, version, "Item", DD_ITEM_FORMAT)
+        self.site.report_all_errors()
