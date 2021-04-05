@@ -10,7 +10,6 @@ from redbot.core import commands
 from mwrogue.auth_credentials import AuthCredentials
 from mwrogue.esports_client import EsportsClient
 from mwcleric.template_modifier import TemplateModifierBase
-from mwcleric.wiki_client import WikiClient
 
 DDRAGON_V = "https://ddragon.leagueoflegends.com/api/versions.json"
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/{}.json"
@@ -57,110 +56,95 @@ def async_wrap(func):
     return run
 
 
-class Formatter:
-    def __init__(self, ddid, data):
-        self.ddid = ddid
-        self.data = data
-
-    def format(self):
-        raise NotImplementedError()
-
-    @property
-    def stats(self):
-        return self.data[self.ddid]
-
-
-class ChampionFormatter(Formatter):
-    def format(self):
-        return {
-            'name': self.stats['name'],
-            'title': capfirst(self.stats['title']),
-
-            'key_int': self.stats['key'],
-
-            'resource': self.stats['partype'],
-            'attribute': self.stats['tags'][0],
-            'attribute2': self.stats['tags'][1] if len(self.stats['tags']) > 1 else '',
-
-            'hp': self.stats['stats']['hp'],
-            'hp_lvl': self.stats['stats']['hpperlevel'],
-            'hpregen': self.stats['stats']['hpregen'],
-            'hpregen_lvl': self.stats['stats']['hpregenperlevel'],
-            'mana': self.stats['stats']['mp'] if self.stats['partype'] == 'Mana' else '',
-            'mana_lvl': self.stats['stats']['mpperlevel'] if self.stats['partype'] == 'Mana' else '',
-            'mregen': self.stats['stats']['mpregen'] if self.stats['partype'] == 'Mana' else '',
-            'mregen_lvl': self.stats['stats']['mpregenperlevel'] if self.stats['partype'] == 'Mana' else '',
-            'range': self.stats['stats']['attackrange'],
-            'ad': self.stats['stats']['attackdamage'],
-            'ad_lvl': self.stats['stats']['attackdamageperlevel'],
-            'as': self.stats['stats']['attackspeed'],
-            'as_lvl': self.stats['stats']['attackspeedperlevel'],
-            'armor': self.stats['stats']['armor'],
-            'armor_lvl': self.stats['stats']['armorperlevel'],
-            'mr': self.stats['stats']['spellblock'],
-            'mr_lvl': self.stats['stats']['spellblockperlevel'],
-            'ms': self.stats['stats']['movespeed'],
-        }
-
-
-class ItemFormatter(Formatter):
-    def format(self):
-        return {
-            'name': self.stats['name'],
-            'item_code': None,
-
-            'ad': ifinelse(self.stats['stats'], 'FlatPhysicalDamageMod'),
-            'ls': strperc(ifinelse(self.stats['stats'], 'PercentLifeStealMod')),
-            'hp': ifinelse(self.stats['stats'], 'FlatHPPoolMod'),
-            'hpregen': ifinelse(self.stats['stats'], 'FlatHPRegenMod'),
-            'armor': ifinelse(self.stats['stats'], 'FlatArmorMod'),
-            'mr': ifinelse(self.stats['stats'], 'FlatSpellBlockMod'),
-            'crit': ifinelse(self.stats['stats'], 'FlatCritChanceMod'),
-            'as': strperc(ifinelse(self.stats['stats'], 'PercentAttackSpeedMod')),
-            'totalgold': self.stats['gold']['total'],
-            'sold': self.stats['gold']['sell'],
-
-            'used_in': self.get_used_in()
-        }
-
-    def get_used_in(self):
-        items = []
-        for item_id in self.stats['into']:
-            items.append(self.data[item_id]['name'])
-        return ','.join(items)
-
-
 class TemplateModifier(TemplateModifierBase):
-    def __init__(self, site: WikiClient, template, data, formatter, page_list=None,
-                 title_list=None, limit=-1, summary=None, quiet=False, lag=0,
-                 tags=None, skip_pages=None, startat_page=None):
-        self.data = data
-        self.formatter = formatter
-        self.tba = set()
-        super().__init__(site, template, page_list=page_list, title_list=title_list,
-                         limit=limit, summary=summary, quiet=quiet, lag=lag, tags=tags,
-                         skip_pages=skip_pages,
-                         startat_page=startat_page)
+    section = "None"
 
     @async_wrap
     def fakesync_run(self):
         self.run()
 
     def update_template(self, template):
-        key = [k for k, v in self.data.items() if v.get('name') == template.get('name', '').value.strip()]
+        key = [k for k, v in self.data['data'].items()
+               if v.get('name') == self.current_template.get('name', '').value.strip()]
         if len(key) == 1:
-            template.add('ddragon_key', key[0])
-            data = self.formatter(key[0], self.data).format()
+            ddid = key[0]
+            self.current_template.add('ddragon_key', ddid)
         else:
             self.site.log_error_content(self.current_page.name, "Duplicate or missing DDragon data")
             return
 
-        for key, value in data.items():
-            if str(value):
-                template.add(key, str(value))
-            else:
-                if template.has(key) and not template.get(key).value.strip():
-                    template.remove(key, True)
+        self.format_template(ddid)
+
+    def format_template(self, ddid):
+        raise NotImplementedError()
+
+    def put(self, key, value):
+        if str(value):
+            self.current_template.add(key, str(value))
+        else:
+            if self.current_template.has(key) and not self.current_template.get(key).value.strip():
+                self.current_template.remove(key, True)
+
+
+class ChampionModifier(TemplateModifier):
+    section = "Champion"
+
+    def format_template(self, ddid):
+        data = self.data['data']
+
+        self.put('name', data[ddid]['name'])
+        self.put('title', capfirst(data[ddid]['title']))
+
+        self.put('key_int', data[ddid]['key'])
+
+        self.put('resource', data[ddid]['partype'])
+        self.put('attribute', data[ddid]['tags'][0])
+        self.put('attribute2', data[ddid]['tags'][1] if len(data[ddid]['tags']) > 1 else '')
+
+        self.put('hp', data[ddid]['stats']['hp'])
+        self.put('hp_lvl', data[ddid]['stats']['hpperlevel'])
+        self.put('hpregen', data[ddid]['stats']['hpregen'])
+        self.put('hpregen_lvl', data[ddid]['stats']['hpregenperlevel'])
+        self.put('mana', data[ddid]['stats']['mp'] if data[ddid]['partype'] == 'Mana' else '')
+        self.put('mana_lvl', data[ddid]['stats']['mpperlevel'] if data[ddid]['partype'] == 'Mana' else '')
+        self.put('mregen', data[ddid]['stats']['mpregen'] if data[ddid]['partype'] == 'Mana' else '')
+        self.put('mregen_lvl', data[ddid]['stats']['mpregenperlevel'] if data[ddid]['partype'] == 'Mana' else '')
+        self.put('range', data[ddid]['stats']['attackrange'])
+        self.put('ad', data[ddid]['stats']['attackdamage'])
+        self.put('ad_lvl', data[ddid]['stats']['attackdamageperlevel'])
+        self.put('as', data[ddid]['stats']['attackspeed'])
+        self.put('as_lvl', data[ddid]['stats']['attackspeedperlevel'])
+        self.put('armor', data[ddid]['stats']['armor'])
+        self.put('armor_lvl', data[ddid]['stats']['armorperlevel'])
+        self.put('mr', data[ddid]['stats']['spellblock'])
+        self.put('mr_lvl', data[ddid]['stats']['spellblockperlevel'])
+        self.put('ms', data[ddid]['stats']['movespeed'])
+
+
+class ItemModifier(TemplateModifier):
+    section = "Item"
+
+    def format_template(self, ddid):
+        data = self.data['data']
+
+        self.put('name', data[ddid]['name'])
+        self.put('item_code', None)
+
+        self.put('ad', ifinelse(data[ddid]['stats'], 'FlatPhysicalDamageMod'))
+        self.put('ls', strperc(ifinelse(data[ddid]['stats'], 'PercentLifeStealMod')))
+        self.put('hp', ifinelse(data[ddid]['stats'], 'FlatHPPoolMod'))
+        self.put('hpregen', ifinelse(data[ddid]['stats'], 'FlatHPRegenMod'))
+        self.put('armor', ifinelse(data[ddid]['stats'], 'FlatArmorMod'))
+        self.put('mr', ifinelse(data[ddid]['stats'], 'FlatSpellBlockMod'))
+        self.put('crit', ifinelse(data[ddid]['stats'], 'FlatCritChanceMod'))
+        self.put('as', strperc(ifinelse(data[ddid]['stats'], 'PercentAttackSpeedMod')))
+        self.put('totalgold', data[ddid]['gold']['total'])
+        self.put('sold', data[ddid]['gold']['sell'])
+
+        items = []
+        for item_id in data[ddid]['into']:
+            items.append(data[item_id]['name'])
+        self.put('used_in', ','.join(items))
 
 
 class PatchUpdate(commands.Cog):
@@ -173,17 +157,18 @@ class PatchUpdate(commands.Cog):
         pass
 
     @staticmethod
-    async def updatestats(site: WikiClient, section: str, formatter: Type[Formatter], version: Optional[str] = None):
+    async def updatestats(site: EsportsClient, template_modifier: Type[TemplateModifier],
+                          version: Optional[str] = None):
         async with aiohttp.ClientSession() as session:
             if version is None:
                 async with session.get(DDRAGON_V) as resp:
                     version = json.loads(await resp.text())[0]
             elif not re.match(r'\d+\.\d+\.\d+', version):
                 version += ".1"
-            async with session.get(DDRAGON.format(version, section.lower())) as resp:
+            async with session.get(DDRAGON.format(version, template_modifier.section.lower())) as resp:
                 data = json.loads(await resp.text())['data']
-            tm = TemplateModifier(site, "Infobox " + section, data, formatter,
-                                  summary=section + " Update for " + version)
+            tm = template_modifier(site, "Infobox " + template_modifier.section, data=data,
+                                   summary=template_modifier.section + " Update for " + version)
             await tm.fakesync_run()
             site.report_all_errors('patchupdate')
 
@@ -192,7 +177,7 @@ class PatchUpdate(commands.Cog):
         await ctx.send("Okay, starting!")
         site = await utils.login_if_possible(ctx, self.bot, 'lol')
         async with ctx.typing():
-            await self.updatestats(site, 'Champion', ChampionFormatter, version)
+            await self.updatestats(site, ChampionModifier, version)
         await ctx.send("Okay, done!")
 
     @patchupdate.command()
@@ -200,11 +185,11 @@ class PatchUpdate(commands.Cog):
         await ctx.send("Okay, starting!")
         site = await utils.login_if_possible(ctx, self.bot, 'lol')
         async with ctx.typing():
-            await self.updatestats(site, 'Item', ItemFormatter, version)
+            await self.updatestats(site, ItemModifier, version)
         await ctx.send("Okay, done!")
 
 
 if __name__ == "__main__":
     lolsite = EsportsClient('lol', credentials=AuthCredentials(user_file='me'))
-    asyncio.run(PatchUpdate.updatestats(lolsite, 'Champion', ChampionFormatter))
-    # asyncio.run(PatchUpdate.updatestats(lolsite, 'Item', ItemFormatter))
+    asyncio.run(PatchUpdate.updatestats(lolsite, ChampionModifier))
+    # asyncio.run(PatchUpdate.updatestats(lolsite, ItemModifier))
