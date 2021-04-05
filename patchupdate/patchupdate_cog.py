@@ -36,7 +36,7 @@ async def updatestats(site: EsportsClient, section: str, version: Optional[str] 
                                      summary=section.title() + " Update for " + version)
 
     await asyncio.get_event_loop().run_in_executor(None, tm.run)
-    site.report_all_errors('patchupdate')
+    site.report_all_errors('PatchUpdate')
 
 
 class PatchUpdate(commands.Cog):
@@ -62,6 +62,7 @@ class PatchUpdate(commands.Cog):
 
     @patchupdate.command()
     async def championstats(self, ctx, version=None):
+        """Patch champion stats"""
         await ctx.send("Okay, starting!")
         site = await utils.login_if_possible(ctx, self.bot, 'lol')
         async with ctx.typing():
@@ -70,6 +71,7 @@ class PatchUpdate(commands.Cog):
 
     @patchupdate.command()
     async def itemstats(self, ctx, version=None):
+        """Patch item stats"""
         await ctx.send("Okay, starting!")
         site = await utils.login_if_possible(ctx, self.bot, 'lol')
         async with ctx.typing():
