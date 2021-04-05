@@ -1,4 +1,4 @@
-from .template_modifier import TemplateModifier
+from patchupdate.template_modifier import TemplateModifier
 
 
 def strperc(i):

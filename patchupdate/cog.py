@@ -10,8 +10,8 @@ from mwrogue.auth_credentials import AuthCredentials
 from mwrogue.esports_client import EsportsClient
 from redbot.core import commands
 
-from .champion_modifier import ChampionModifier
-from .item_modifier import ItemModifier
+from patchupdate.champion_modifier import ChampionModifier
+from patchupdate.item_modifier import ItemModifier
 
 DDRAGON_V = "https://ddragon.leagueoflegends.com/api/versions.json"
 DDRAGON = "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/{}.json"
