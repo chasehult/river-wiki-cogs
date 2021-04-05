@@ -36,7 +36,7 @@ async def updatestats(site: EsportsClient, section: str, version: Optional[str] 
                                      summary=section.title() + " Update for " + version)
 
     await asyncio.get_event_loop().run_in_executor(None, tm.run)
-    site.report_all_errors('PatchUpdate')
+    site.report_all_errors('patchupdate')
 
 
 class PatchUpdate(commands.Cog):
