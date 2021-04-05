@@ -1,4 +1,4 @@
-from patchupdate.template_modifier import TemplateModifier
+from .template_modifier import TemplateModifier
 
 
 def strperc(i):
@@ -12,8 +12,6 @@ def strperc(i):
 
 
 class ItemModifier(TemplateModifier):
-    section = "Item"
-
     def format_template(self, ddid):
         data = self.data['data']
 

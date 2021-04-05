@@ -1,16 +1,14 @@
 import re
 
-from patchupdate.template_modifier import TemplateModifier
+from .template_modifier import TemplateModifier
 
 
 def capfirst(s):
     """Capitalize the very first character of a string"""
-    return re.sub(r'^.', lambda x: x.group().upper(), s)
+    return re.sub(r'^.', lambda m: m.group().upper(), s)
 
 
 class ChampionModifier(TemplateModifier):
-    section = "Champion"
-
     def format_template(self, ddid):
         data = self.data['data']
 

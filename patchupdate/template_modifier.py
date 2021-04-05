@@ -2,8 +2,6 @@ from mwcleric.template_modifier import TemplateModifierBase
 
 
 class TemplateModifier(TemplateModifierBase):
-    section = "None"
-
     def update_template(self, template):
         key = [k for k, v in self.data['data'].items()
                if v.get('name') == self.current_template.get('name', '').value.strip()]
